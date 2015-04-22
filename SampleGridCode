@@ -1,0 +1,253 @@
+		/// <summary>
+		/// This method will set the ACH Account header DropDown selection
+		/// based on the individual property's ACH Account.
+		/// </summary>
+		private void SetAchAccountHeaderSelection()
+		{
+			//
+			DropDownList ddlForHeaderRow = (from GridViewRow gridRow in ProfilePropertiesGrid.Rows where gridRow.RowType == DataControlRowType.Header 
+											select Utilities.RecursiveFindControl(gridRow, "BankAccountDDLHeader") as 
+
+DropDownList).FirstOrDefault();
+
+			// Get the count of properties in the main grid.
+			int numProps = CurrentGridDataSource.Count;
+
+			// Determine how many of the properties have NONE as the ACH Account.
+			int numNone = (from items in CurrentGridDataSource where items.AccountName == "NONE" select items).Count();
+
+			//
+			if (numProps == numNone)
+			{
+				//
+				if (ddlForHeaderRow != null) ddlForHeaderRow.SelectedIndex = CurrentAccountSelectedIndex = 0;
+			}
+		}
+		protected void LoadGridData()
+		{
+			// Load the existing User Profile information.
+			try
+			{
+				// Vaerify that we have a Session Guid.
+				if (SessionInfo != null && SessionInfo.Succeeded && !String.IsNullOrEmpty(SessionGuid))
+				{
+					//
+					ViewState["SortDirection"] = CurrentSortOrder;
+					ViewState["SortExpression"] = CurrentSortColumn;
+
+					// Call the DataContext method that retrieves the user account information.
+					if (NycDataContext != null)
+					{
+						// Verify that we have a valid SessionInfo result and that the session has not timed out.
+						if (SessionInfo != null && SessionInfo.SessionTimedOut)
+						{
+							// Post a message on the Message page and inform the user that they must login again.
+							Server.Transfer("~/Message.aspx?MessageType=SessionTimedOut");
+						}
+						else
+						{
+							// Call the DataContext method to retrieve all properties for this user.
+							OriginalGridDataSource = NycDataContext.GetUserPropertyProfile(SessionGuid, SessionInfo.UserGuid, true);
+
+							// Check for row(s).
+							if (OriginalGridDataSource == null)
+							{
+								throw new ApplicationException("Error performing search for properties.");
+							}
+							// Check for time out or error.
+							if (OriginalGridDataSource.SessionTimedOut)
+							{
+								// Post a message on the Message page and inform the user that they must login again.
+								Server.Transfer("~/Message.aspx?MessageType=SessionTimedOut");
+							}
+							else if (!OriginalGridDataSource.Succeeded)
+								OriginalGridDataSource.Clear();
+
+							//
+							CurrentGridDataSource = OriginalGridDataSource;
+
+							// Retrieve Bank Account info for the user.
+							GetShortBankAccountsList(SessionInfo.SessionId, SessionInfo.UserGuid);
+
+							//
+							BindGridData();
+
+							//
+							GetDistinctTaxTypes();
+						}
+					}
+					else
+					{
+						throw new ApplicationException("Error retrieving DataContext");
+					}
+				}
+				else
+				{
+					throw new ApplicationException("Session Guid not found.");
+				}
+			}
+			catch (ThreadAbortException)
+			{
+				// Do nothing. This exception is automatically thrown on a Server.Transfer().
+				// See: http://msdn.microsoft.com/en-us/library/y4k58xk7(v=vs.100).aspx for details.
+			}
+			catch (Exception ex)
+			{
+				string guid = " Session GUID = " + (String.IsNullOrEmpty(SessionGuid) ? "Null or Empty" : SessionGuid);
+
+				string user = " User: ";
+				if (SessionInfo != null && !String.IsNullOrEmpty(SessionInfo.UserId))
+				{
+					user += SessionInfo.UserId;
+				}
+				else
+				{
+					user += "Unknown";
+				}
+				// General Error or Exception. Email Support.
+				if (ex.InnerException != null)
+				{
+					// Send email to Support.
+					Communications.SendSupportEmail(ex.Message + ", InnerMessage: " + ex.InnerException.Message,
+													"PropertyProfileManagement.PropertyProfileManagementPreRenderComplete" + 
+
+guid +
+													user);
+				}
+				else
+				{
+					// Send email to Support.
+					Communications.SendSupportEmail(ex.Message,
+													"PropertyProfileManagement.PropertyProfileManagementPreRenderComplete" + 
+
+guid +
+													user);
+				}
+
+				// General exception for this method. Display a message on the Message page.
+				Server.Transfer("~/Message.aspx?MessageType=PropertyProfileManagementError");
+			}
+		}
+
+		protected void BindGridData(string filterField = null)
+		{
+			//
+			List<GetPropertyForPaymentResult> listOfProperties = null;
+
+			//
+			if (!String.IsNullOrEmpty(filterField))
+			{
+				switch (filterField)
+				{
+					case "Block":
+						//
+						listOfProperties = (from items in CurrentGridDataSource where items.Block.Contains(PropertySearchTextBox.Text, 
+
+StringComparison.OrdinalIgnoreCase) select items).ToList();
+						break;
+					case "Lot":
+						//
+						listOfProperties = (from items in CurrentGridDataSource where items.Lot.Contains(PropertySearchTextBox.Text, 
+
+StringComparison.OrdinalIgnoreCase) select items).ToList();
+						break;
+					case "Address":
+						//
+						listOfProperties = (from items in CurrentGridDataSource where items.PrimaryAddress.Contains(PropertySearchTextBox.Text, 
+
+StringComparison.OrdinalIgnoreCase) select items).ToList();
+						break;
+					case "All":
+						//
+						listOfProperties = (from items in CurrentGridDataSource 
+											where items.Block.Contains(PropertySearchTextBox.Text, StringComparison.OrdinalIgnoreCase) 
+
+||
+											items.Lot.Contains(PropertySearchTextBox.Text, StringComparison.OrdinalIgnoreCase) ||
+											items.PrimaryAddress.Contains(PropertySearchTextBox.Text, 
+
+StringComparison.OrdinalIgnoreCase)
+											select items).ToList();
+						break;
+				}
+			}
+			else
+				//
+				listOfProperties = (from items in CurrentGridDataSource select items).ToList();
+
+			//
+			if (listOfProperties != null)
+			{
+				if (listOfProperties.Count > 0)
+					listOfProperties = Sort2(listOfProperties, ViewState["SortExpression"] as string, (SortOrder)ViewState["SortDirection"]);
+
+				// Load the Grid with the Properties for this user.
+				ProfilePropertiesGrid.DataSource = listOfProperties;
+				ProfilePropertiesGrid.DataBind();
+
+				//
+				if (LineNumbersToDelete != null)
+				{
+					//
+					var l = new HiddenField();
+					foreach (GridViewRow row in ProfilePropertiesGrid.Rows)
+					{
+						l = (HiddenField)row.FindControl("HiddenField1");
+						if (LineNumbersToDelete.Contains(l.Value))
+							row.BackColor = System.Drawing.Color.DarkSalmon;
+					}
+				}
+			}
+			// Call method to construct and display the page numbers.
+			AddPageNumbers(ProfilePropertiesGrid.PageIndex, ProfilePropertiesGrid.PageCount);
+
+			SetAnnualPayHeaderCheckBox();
+
+			SetAutoDebitHeaderCheckBox();
+		}
+
+		/// <summary>
+		/// Set the AutoDebit column header CheckBox.
+		/// </summary>
+		private void SetAutoDebitHeaderCheckBox()
+		{
+			// Determine if the AutoDebit field for all properties are all 'true' or all 'false'.
+			_hdrAutoDebitChecked = !(from item in CurrentGridDataSource where item.AutoDebit == false select item).Any();
+
+			// Retrieve the Header Row from the GridView.
+			var hdrRow = ProfilePropertiesGrid.HeaderRow;
+
+			// As long as we obtained a valid Header Row, set the Column's header CheckBox.
+			if (hdrRow != null)
+			{
+				// Retrieve the CheckBox for this column.
+				var autoDebitGlobalCheckBox = hdrRow.FindControl("AutoDebitGlobalCheckBox") as CheckBox;
+                autoDebitGlobalCheckBox.Enabled = false;
+
+				// Set the CheckBox Checked value if the CheckBox was found.
+				if (autoDebitGlobalCheckBox != null) autoDebitGlobalCheckBox.Checked = _hdrAutoDebitChecked;
+			}
+		}
+
+		/// <summary>
+		/// Set the AnnualPay column header CheckBox.
+		/// </summary>
+		private void SetAnnualPayHeaderCheckBox()
+		{
+			// Determine if the Annual Pay field for all properties are all 'true' or all 'false'.
+			_hdrAnnualPayChecked = !(from item in CurrentGridDataSource where item.AnnualPay == false select item).Any();
+
+			// Retrieve the Header Row from the GridView.
+			var hdrRow = ProfilePropertiesGrid.HeaderRow;
+
+			// As long as we obtained a valid Header Row, set the Column's header CheckBox.
+			if (hdrRow != null)
+			{
+				// Retrieve the CheckBox for this column.
+				var annualPayGlobalCheckBox = hdrRow.FindControl("AnnualPayGlobalCheckBox") as CheckBox;
+                annualPayGlobalCheckBox.Enabled = false;
+
+				// Set the CheckBox Checked value if the CheckBox was found.
+				if (annualPayGlobalCheckBox != null) annualPayGlobalCheckBox.Checked = _hdrAnnualPayChecked;
+			}
+		}
