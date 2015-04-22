@@ -1,0 +1,134 @@
+namespace NYCeFilePropertyTaxPaymentService.Administration
+{
+    /// <summary>
+    /// The Main Menu page for the Admin site.
+    /// </summary>
+    public partial class AdminAccountMainMenu : BasePage
+    {
+        #region Fields
+		#endregion Fields
+
+		/// <summary>
+		/// 
+		/// </summary>
+		protected AdminAccountMainMenu()
+		{
+			// Add Page event handlers that may be required.
+            Load += AdminAccountMainMenuLoad;
+			PreRenderComplete += AdminAccountMainMenuPreRenderComplete;
+		}
+
+		/// <summary>
+		/// Perform any data actions or page layout required before displaying the page.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void AdminAccountMainMenuPreRenderComplete(object sender, EventArgs e)
+		{
+			// Perform any actions needed when the Page is loaded for the first time. 
+			if (!IsPostBack)
+			{
+				// Load the existing User Profile information.
+				try
+				{
+					// Verify that we have a Session Guid.
+					if (!String.IsNullOrEmpty(SessionGuid))
+					{
+						// Call the DataContext method that retrieves the user account information.
+						if (NycDataContext != null)
+						{
+							// Call the DataAccess method to retrieve the session info.
+							SessionInfo = CurrentSessionInfo;
+
+							// Verify that the session has not timed out.
+							if (SessionInfo != null && SessionInfo.SessionTimedOut)
+							{
+								// Post a message on the Message page and inform the user that they must login again.
+								Server.Transfer("~/Message.aspx?MessageType=SessionTimedOut&Type=Admin");
+							}
+							else if (SessionInfo == null)
+							{
+								// Throw an exception.
+								throw new ApplicationException("Error retrieving Session Info from database for session id: " + SessionGuid);
+							}
+							else if (SessionInfo != null && !SessionInfo.Succeeded)
+							{
+								// Throw an exception.
+								throw new ApplicationException("Error retrieving Session Info from database for session id: " + SessionGuid + ". Detail: " + SessionInfo.ResultDetail);
+							}
+							else
+							{
+								if (!CurrentSessionInfo.SuperUser)
+                                {
+                                    TableRow3.Attributes.Add("class", "none");
+                                }
+							}
+						}
+						else
+						{
+							throw new ApplicationException("Error retrieving DataContext");
+						}
+					}
+					else
+					{
+						throw new ApplicationException("Session Guid not found.");
+					}
+				}
+				catch (ThreadAbortException)
+				{
+					// Do nothing. This exception is automatically thrown on a Server.Transfer().
+					// See: http://msdn.microsoft.com/en-us/library/y4k58xk7(v=vs.100).aspx for details.
+				}
+				catch (Exception ex)
+				{
+					string guid = " Session GUID = " + (String.IsNullOrEmpty(SessionGuid) ? "Null or Empty" : SessionGuid);
+
+					string user = " User: ";
+					if (CurrentSessionInfo != null && !String.IsNullOrEmpty(CurrentSessionInfo.UserId))
+					{
+						user += CurrentSessionInfo.UserId;
+					}
+					else
+					{
+						user += "Unknown";
+					}
+
+					// General Error or Exception. Email Support.
+					if (ex.InnerException != null)
+					{
+						// Send email to Support.
+						Communications.SendSupportEmail(ex.Message + ", InnerMessage: " + ex.InnerException.Message,
+							"AccountMainMenu.AdminAccountMainMenuPreRenderComplete." + guid + user);
+					}
+					else
+					{
+						// Send email to Support.
+						Communications.SendSupportEmail(ex.Message, "AccountMainMenu.AdminAccountMainMenuPreRenderComplete" + guid + user);
+					}
+					// General exception for this method. Display a message on the Message page.
+					Server.Transfer("~/Message.aspx?MessageType=AccountMainMenuError&Type=Admin");
+				}
+			}
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+        private void AdminAccountMainMenuLoad(object sender, EventArgs e)
+		{
+			// Perform any actions needed when the Page is loaded for the first time.
+			if (!IsPostBack)
+			{
+				try
+				{
+				}
+				catch (Exception ex)
+				{
+					// General Error or Exception. Email Support.
+					Communications.SendSupportEmail(ex.Message, "AccountMainMenu.AdminAccountMainMenuLoad");
+				}
+			}
+		}
