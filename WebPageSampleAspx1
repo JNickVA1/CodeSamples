@@ -5,7 +5,7 @@
 <%@ Register Src="~/common/controls/properties/QuickContact.ascx" TagName="QuickContact" TagPrefix="uc" %>
 
 <asp:Content runat="server" ContentPlaceHolderID="scripts">
-	<uc:Script runat="server" Src="~/common/content/js/SIM.equine.html.js" ScriptType="text/javascript" />
+	<uc:Script runat="server" Src="~/common/content/js/SIM.Test.html.js" ScriptType="text/javascript" />
 	<uc:Script runat="server" Src="~/common/content/js/jquery.dimensions.min.js" ScriptType="text/javascript" />
 	<uc:Script runat="server" Src="~/common/content/js/SIM.equine.jgallery.js" ScriptType="text/javascript" />
 
@@ -247,10 +247,7 @@
 	<div class="fl_r">
 	    <uc:RoundedBox runat="server" MainWidth="291" CssClass="bg3">
 			<div class="toolItem" style="padding: 5px;">
-				This ad is provided through a partnership with LandsOfAmerica.com, 
-				the largest marketplace for rural real estate on the internet.
-				With over 62,000 listings, finding dream horse properties for sale
-				has never been easier.
+				This ad is provided through ....
 			</div>
 		</uc:RoundedBox>
 		
