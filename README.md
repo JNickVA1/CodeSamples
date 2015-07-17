@@ -1,2 +1,2 @@
 # CodeSamples
-A selection of .NET code sample files.
+A selection of .NET and JavaScript code sample files.
