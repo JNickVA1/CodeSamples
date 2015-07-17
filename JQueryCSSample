@@ -1,0 +1,66 @@
+    public partial class common_controls_GenericListings_jQueryGallery : System.Web.UI.UserControl, IListingSubView
+    {
+        public Listing Listing
+        {
+            set
+            {
+                if (value != null)
+                {
+                    gallery.SEOText = value.GetSEOText();
+
+                    gallery.Videos = (from v in SelectCompleteExternalFlashVideoModifiers(value.Modifiers)
+                                      select new GalleryVideo()
+                                      {
+                                          VideoUrl = v.Url,
+                                          IsGoogle = v.ExternalFlashVideoType == ExternalVideoType.Google,
+                                          IsMySpace = v.ExternalFlashVideoType == ExternalVideoType.MySpace,
+                                          IsYouTube = v.ExternalFlashVideoType == ExternalVideoType.YouTube
+                                      }).Where(x => x.IsGoogle || x.IsMySpace || x.IsYouTube).ToList();
+
+                    var listingDAO = DependencyResolver.GetInstanceOf<IListingService>();
+                    if (!listingDAO.IsOodleAd(value.ListingId))
+                    {
+                        gallery.Images = (from i in SelectCompletePhotoModifiers(value.Modifiers)
+                                          select new GalleryImage()
+                                          {
+                                              PhotoUrl = ImageHelper.GetListingImageUrl(i.BroadBandUrl),
+                                              ThumbnailUrl = ImageHelper.GetListingImageUrl(i.ShowcaseUrl)
+                                          }).ToList();
+                    }
+                    else
+                    {
+                        gallery.Images = (from i in SelectCompletePhotoModifiers(value.Modifiers)
+                                          select new GalleryImage()
+                                          {
+                                              PhotoUrl = i.BroadBandUrl,
+                                              ThumbnailUrl = i.ShowcaseUrl
+                                          }).ToList();
+                    }
+                }
+            }
+        }
+
+        Person IListingSubView.Owner { set { } }
+
+        bool IListingSubView.IsSavedListing
+        {
+            get;
+            set;
+        }
+
+        private IList<ExternalFlashVideoModifier> SelectCompleteExternalFlashVideoModifiers(IEnumerable<ListingModifier> modifiers)
+        {
+            return (from v in modifiers
+                    where v.ModifierType == ModifierConfigType.ExternalFlashVideo &&
+                    v.IsComplete()
+                    select v).Cast<ExternalFlashVideoModifier>().ToList();
+        }
+
+        private IList<PhotoModifier> SelectCompletePhotoModifiers(IEnumerable<ListingModifier> modifiers)
+        {
+            return (from v in modifiers
+                    where v.ModifierType == ModifierConfigType.PhotoModifier &&
+                    v.IsComplete()
+                    select v).Cast<PhotoModifier>().ToList();
+        }
+    }
