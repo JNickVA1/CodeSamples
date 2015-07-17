@@ -1,0 +1,74 @@
+<%@ Control Language="C#" ClassName="StateAndTypeSEO" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<script runat="server">
+
+SortedList<int, string> ctrlStates;
+protected override void OnLoad(EventArgs e) {
+	base.OnLoad(e);
+	loaStates = new SortedList<int, string>();
+	loaStates.Add(1, "Alabama");
+	loaStates.Add(2, "Alaska");
+	loaStates.Add(4, "Arizona");
+	loaStates.Add(5, "Arkansas");
+	loaStates.Add(6, "California");
+	loaStates.Add(8, "Colorado");
+	loaStates.Add(9, "Connecticut");
+	loaStates.Add(10, "Delaware");
+	loaStates.Add(12, "Florida");
+	loaStates.Add(13, "Georgia");
+	loaStates.Add(15, "Hawaii");
+	loaStates.Add(16, "Idaho");
+	loaStates.Add(17, "Illinois");
+	loaStates.Add(18, "Indiana");
+	loaStates.Add(19, "Iowa");
+	loaStates.Add(20, "Kansas");
+	loaStates.Add(21, "Kentucky");
+	loaStates.Add(22, "Louisiana");
+	loaStates.Add(23, "Maine");
+	loaStates.Add(24, "Maryland");
+	loaStates.Add(25, "Massachusetts");
+	loaStates.Add(26, "Michigan");
+	loaStates.Add(27, "Minnesota");
+	loaStates.Add(28, "Mississippi");
+	loaStates.Add(29, "Missouri");
+	loaStates.Add(30, "Montana");
+	loaStates.Add(31, "Nebraska");
+	loaStates.Add(32, "Nevada");
+	loaStates.Add(33, "New Hampshire");
+	loaStates.Add(34, "New Jersey");
+	loaStates.Add(35, "New Mexico");
+	loaStates.Add(36, "New York");
+	loaStates.Add(37, "North Carolina");
+	loaStates.Add(38, "North Dakota");
+	loaStates.Add(39, "Ohio");
+	loaStates.Add(40, "Oklahoma");
+	loaStates.Add(41, "Oregon");
+	loaStates.Add(42, "Pennsylvania");
+	loaStates.Add(72, "Puerto Rico");
+	loaStates.Add(44, "Rhode Island");
+	loaStates.Add(45, "South Carolina");
+	loaStates.Add(46, "South Dakota");
+	loaStates.Add(47, "Tennessee");
+	loaStates.Add(48, "Texas");
+	loaStates.Add(49, "Utah");
+	loaStates.Add(50, "Vermont");
+	loaStates.Add(51, "Virginia");
+	loaStates.Add(53, "Washington");
+	loaStates.Add(11, "Washington D.C.");
+	loaStates.Add(54, "West Virginia");
+	loaStates.Add(55, "Wisconsin");
+	loaStates.Add(56, "Wyoming");
+}
+</script>
+<h1>Search for more</h1>
+<div class="container ctrlStates" style="padding: 10px;">
+
+<% 
+foreach(KeyValuePair<int,string> kvp in ctrlStates) {
+	int stateId = kvp.Key;
+	string state = kvp.Value;
+%>
+	<a href="?state_id=<%=stateId %>">State: <%=state %></a>
+	<br />
+<% } %>
+</div>
