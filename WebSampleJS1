@@ -1,0 +1,549 @@
+<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true"
+	CodeBehind="PropertyProfileManagement.aspx.cs" Inherits="NYCeFilePropertyTaxPaymentService.PropertyManagement.PropertyProfileManagement" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="HeadContent" runat="server">
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
+    <link href="../Styles/jqueryui.css" rel="stylesheet" type="text/css" />
+    <link href="../Styles/jquery-themes/smoothness/smoothness.css" rel="stylesheet" type="text/css" />
+    <script src="../Scripts/common.js" type="text/javascript"></script>
+    <script src="../Scripts/jquery-1.11.0.js" type="text/javascript"></script>
+    <script src="../Scripts/jquery-ui-1.10.4.min.js" type="text/javascript" ></script>
+    <link href="../Styles/datatable/jquery.dataTables.css" rel="stylesheet" type="text/css" />
+    <link href="../Styles/datatable/demo_table_jui.css" rel="stylesheet" type="text/css" />
+    <script src="../Scripts/datatables/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="../Scripts/PropertyProfileManagement.js" type="text/javascript"></script>
+    <style>
+    .btnchk img {
+        position: absolute;
+        top: -6px;
+        left: -12px;
+        border: none;
+    }
+    
+    .btnGreenSave img 
+    {
+        position: absolute;
+        top: -6px;
+        left: -12px;
+        border: none;
+    }
+    
+    .btnGreenSave, .btnCancelSave
+    {
+        float:right;
+        margin-left:20px;
+        margin-top:10px;
+    }
+    
+    .btnExample 
+    {
+        float:none;
+        margin: 0, 0, 0, 0;  
+    }
+    
+    .unsavedRow td
+    {
+        background-color: #ffbfcb;
+    }
+    
+    </style>
+    
+    <div id="divDialogs" class="none">
+        <div id="dlgLoading" title="Loading..." class="ct">
+            <img src="../Images/arrowProgressBar.gif" />    
+        </div>
+        <div id="dlgSaving" title="Saving profile..." class="ct">
+            <img src="../Images/arrowProgressBar.gif" />    
+        </div>
+        <div class="dialog" id="dlgError" title="Error">
+            <table class="DialogMessageTable">
+                <tr>
+                    <td valign="top" id="td1"><img src="../Images/exclamationtriangle-body.png" /></td>
+                    <td valign="top" id="tdErrorMessage"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="dialog" id="dlgInfoMessage" title="Information">
+            <table class="DialogMessageTable">
+                <tr>
+                    <td valign="top" id="td2"><img src="../Images/check-body.png" /></td>
+                    <td valign="top" id="tdInfoMessage"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="dialog" id="dlgConfirmSave" title="Leave page?">
+            <table class="DialogMessageTable">
+                <tr>
+                    <td valign="top" id="td3"><img src="../Images/exclamationtriangle-body.png" /></td>
+                    <td valign="top" id="td4">Are you sure you want to cancel your changes? All unsaved work will be lost!</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+	<div>
+		<h2>
+			Property Profile Management
+		</h2>
+		<h4>
+			On this page you may Add and Delete Properties, as well as set Payment Options</h4>
+        
+
+		<%--<p>
+			Options:<br />
+			1. Add properties to your profile.<br />
+			2. Add properties by way of file upload.<br />
+			3. Delete properties from your profile.<br />
+			4. Select Tax Types to pay for each property that is setup for Auto-Pay.<br />
+			5. Select payment options for properties.
+		</p>--%>
+        
+		<asp:Table ID="PropertyTaxPaymentBusinessTable" runat="server">
+			<asp:TableRow ID="TableRow9" runat="server" HorizontalAlign="Right" CssClass="none">
+				<asp:TableCell ID="TableCell13" runat="server" HorizontalAlign="Right">
+					<asp:Button ID="CancelButtonTop" runat="server" CausesValidation="True" Text="Cancel"
+						CssClass="submitButton" PostBackUrl="~/AccountMainMenu.aspx" ToolTip="Return to the Main Menu" />
+					<asp:Button ID="SubmitButtonTop" runat="server" CommandName="Submit" ToolTip="Click to Save Changes to your Property Profile"
+						OnCommand="CommandButtonClick" Text="Update Property Profile" CssClass="submitButton" />
+				</asp:TableCell>
+			</asp:TableRow>
+			<asp:TableRow ID="TablesRow" runat="server">
+				<asp:TableCell ID="InputCell" runat="server">
+					<div>
+                        <div>
+                            <span id="span4" class="btnHelp" onclick="ShowHelp();"> 
+                                        <img src="../Images/iconsets/knobbuttons/Knob%20Message.png" id="imgHelp1" /><label id="lblHelpText">Click here to open help! &nbsp;&nbsp;&nbsp;</label><img src="../Images/iconsets/knobbuttons/KnobDown.png" id="imgHelp2" /></span>
+                        </div>
+                        <div id="dlgAccordion" class="invisible">
+                            <fieldset class="login">
+                            <div id="dlgHelp" title="Instructions">
+                                <div id="accordion">
+                                    <h3>Add a property</h3>
+                                    <div>
+                                        <p>
+                                            Search for the property you want 
+                                            to add from the "Search For A Property" section below. From the search results, click the <img src="../Images/add-example.png" /> button. 
+                                            <br />
+                                            To add multiple properties to your profile, you may upload a BBL preference file (See <a href="#upload" >Upload Boro Block Lot Preference File</a> below).
+                                            <br />
+                                            When you are done making your changes, click the <img src="../Images/save-example.png" />button.
+                                        </p>
+                                    </div>
+                                    <h3>Delete a property</h3>
+                                    <div>
+                                        <p>
+                                            Click the <img src="../Images/iconsets/devicons/Minus Red Button.png" /> button next to the property you want to remove from your profile.
+                                            <br />
+                                            When you are done making your changes, click the  <img src="../Images/save-example.png" />
+                                        </p>
+                                    </div>
+                                    <h3>Set a preferred bank account for a property</h3>
+                                    <div>
+                                        <p>
+                                            To set a preferred ACH account for all your properties, choose the account number from the ACH Account options in the ACH Account column header.
+                                            <br />
+                                            To set a preferred ACH account for a specific property, choose the account number from that property's line item.
+                                            <br />
+                                            When you are done making your changes, click the <img src="../Images/save-example.png" />
+                                        </p>
+                                    </div>
+                                    <h3>Set the auto-debit feature for a property</h3>
+                                    <div>
+                                        <p>
+                                            To set all your properties to "Auto-Debit" check the box in the Auto-Debit column header. Every line item must have a preferred ACH account associated with it to enable auto-debit.
+                                            <br />
+                                            To set a specific property to "Auto-Debit" check the auto-debit check box for that line item. The selected line item must have a preferred ACH account associated with it to enable auto-debit.
+                                            <br />
+                                            When you are done making your changes, click the <img src="../Images/save-example.png" />
+                                        </p>
+                                    </div>
+                                    <h3>Set the annual pay feature for a property</h3>
+                                    <div>
+                                        <p>
+                                            To set all your properties to "Annual Pay" check the box in the Annual Pay column header. Every line item must have a preferred ACH account associated with it to enable annual pay.
+                                            <br />
+                                            To set a specific property to "Annual Pay" check the Annual Pay check box for that line item. The selected line item must have a preferred ACH account associated with it to enable annual pay.
+                                            <br />
+                                            When you are done making your changes, click the <img src="../Images/save-example.png" />
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            </fieldset>
+                        </div>
+                        <div>
+                            <fieldset class="login">
+                                <div id="divSaveCancelButtons">
+                                    <span id="spanSaveProfile" class="btnSave btnGreenSave" onclick="SavePropertyProfile();" style="float:right;"> 
+                                        <img src="../Images/iconsets/devicons/Send%20Document.png" />Save Property Profile</span>
+                                    
+                                    <span id="Span2" class="btnCancel btnCancelSave" onclick="ConfirmCancel();" style="float:right;"> 
+                                        <img src="../Images/iconsets/devicons/Stop%20Red%20Button.png" />Cancel</span>
+                                </div>
+                                <table class="" id="tblUpToDate">
+                                    <tr>
+                                        <td>
+                                            <img src="../Images/iconsets/knobbuttons/Knob%20Valid%20Green.png" /></td>
+                                        <td valign="middle">Your saved property profile is up to date</td>
+                                    </tr>
+                                </table>
+                                <table class="none" id="tblSaveWarning">
+                                    <tr>
+                                        <td valign="top"><img src="../Images/iconsets/knobbuttons/Knob%20Red.png" /></td>
+                                        <td valign="middle">You have made unsaved changes to your property profile <br /> <span id="lblUnsavedMsg" class="none">Unsaved line items are highlighted in red</span></td>
+                                    </tr>
+                                </table>
+                            </fieldset>
+                        </div>
+						<fieldset class="login">
+							<legend class="LegendWithRadioButtons">Current Property Profile</legend>
+                            <table cellpadding="0" cellspacing="0" border="0" class="display" id="example" style="width: 890px;">
+	                            <thead>
+		                            <tr>
+			                            <th width="10%" class="ct">Boro</th>
+			                            <th width="10%" class="ct">Block</th>
+			                            <th width="10%" class="ct">Lot</th>
+			                            <th width="30%" class="ct">Address</th>
+                                        <th width="10%" class="ct">ACH Account<br /><select id="selGlobalACH" runat="server" onchange="SetGlobalACH($(this).attr('id'));ChangeSaveState(false);"><option></option></select></th>
+			                            <th width="10%" class="ct">Auto-Debit<br /><input type="checkbox" id="chkAllAutoDebit" onclick="CheckAll('chkAutoDebit', this.checked);ChangeSaveState(false);" /></th>
+                                        <th width="10%" class="ct">Annual Pay<br /><input type="checkbox" id="chkAllAnnualPay" onclick="CheckAll('chkAnnualPay', this.checked);ChangeSaveState(false);" /></th>
+                                        <th width="5%"></th>
+		                            </tr>
+	                            </thead>
+	                            <tbody></tbody>
+	                            <tfoot></tfoot>
+                            </table>
+
+
+							<asp:Table ID="Table1" runat="server" CssClass="none">
+								<asp:TableRow ID="TableRow1" runat="server">
+									<asp:TableCell ID="TableCell1" runat="server">
+										<asp:Table runat="server" ID="PropertySelectionListTable">
+											<asp:TableRow ID="TableRow2" runat="server">
+												<asp:TableCell ID="TableCell2" runat="server">
+													<asp:Panel ID="PropertyTaxListGridPanel" runat="server" Width="600" ScrollBars="Auto"
+														Height="200">
+														<asp:GridView ID="PropertyTaxListGrid" runat="server" AutoGenerateColumns="False"
+															ShowHeaderWhenEmpty="True" OnDataBound="PropertyTaxListGridDataBound" EmptyDataText="No Properties Found"
+															GridLines="None" SelectedRowStyle-Wrap="True" ShowFooter="True">
+															<RowStyle BackColor="#D9FFFF" ForeColor="#003366" />
+															<AlternatingRowStyle BackColor="White" ForeColor="#003366" />
+															<HeaderStyle BackColor="#003366" ForeColor="White" />
+															<FooterStyle BackColor="#003366" ForeColor="White" />
+															<Columns>
+																<asp:BoundField DataField="BoroughName" HeaderText="Borough" ItemStyle-Width="130px"
+																	ItemStyle-HorizontalAlign="Center" HeaderStyle-Width="130" HeaderStyle-HorizontalAlign="Center"
+																	ItemStyle-Wrap="False" />
+																<asp:BoundField DataField="Block" HeaderText="Block" ItemStyle-Width="55px" ItemStyle-HorizontalAlign="Center" />
+																<asp:BoundField DataField="Lot" HeaderText="Lot" ItemStyle-Width="40px" ItemStyle-HorizontalAlign="Center" />
+																<asp:BoundField DataField="Easement" HeaderText="Easement" ItemStyle-Width="85px" />
+																<asp:BoundField DataField="PrimaryAddress" HeaderText="Address" ItemStyle-Width="175px" />
+																<asp:TemplateField HeaderText="Add BBL" ItemStyle-HorizontalAlign="Center">
+																	<ItemTemplate>
+																		<asp:CheckBox ID="chkSelectAddBBL" runat="server" />
+																	</ItemTemplate>
+																</asp:TemplateField>
+																<asp:TemplateField HeaderText="Delete BBL" ItemStyle-HorizontalAlign="Center">
+																	<ItemTemplate>
+																		<asp:CheckBox ID="chkSelectDeleteBBL" runat="server" />
+																	</ItemTemplate>
+																</asp:TemplateField>
+																<asp:TemplateField HeaderText="ACH Account">
+																	<ItemTemplate>
+																		<asp:DropDownList ID="ACHAccountDropDownList" runat="server" DataValueField="BankAccountGuid"
+																			DataTextField="MaskedAccountNumber">
+																		</asp:DropDownList>
+																	</ItemTemplate>
+																	<HeaderTemplate>
+																		<asp:Label ID="chkSelectAllACHAccount" runat="server" Text="Preferred ACH Account"
+																			TextAlign="Left" />
+																	</HeaderTemplate>
+																</asp:TemplateField>
+																<asp:TemplateField HeaderText="Auto Debit" ItemStyle-HorizontalAlign="Center">
+																	<ItemTemplate>
+																		<asp:CheckBox ID="chkSelectAutoDebit" runat="server" Checked='<%# Bind("AutoDebit") %>' ViewStateMode="Enabled" EnableViewState="true" />
+																	</ItemTemplate>
+																	<HeaderTemplate>
+																		<asp:CheckBox ID="chkSelectAllAutoDebit" runat="server" Text="Auto Debit" TextAlign="Left" onclick="chkAutoDebit(this);" />
+																	</HeaderTemplate>
+																</asp:TemplateField>
+																<asp:TemplateField HeaderText="Annual Pay" ItemStyle-HorizontalAlign="Center">
+																	<ItemTemplate>
+																		<asp:CheckBox ID="chkSelectAnnualPay" runat="server" Checked='<%# Bind("AnnualPay") %>' ViewStateMode="Enabled" />
+																	</ItemTemplate>
+																	<HeaderTemplate>
+																		<asp:CheckBox ID="chkSelectAllAnnualPay" runat="server" Text="Annual Pay" TextAlign="Left" onclick="chkAnnualPay(this);" />
+																	</HeaderTemplate>
+																</asp:TemplateField>
+															</Columns>
+														</asp:GridView>
+													</asp:Panel>
+												</asp:TableCell>
+											</asp:TableRow>
+										</asp:Table>
+										<asp:Table runat="server" ID="PropertySelectionSearchTable">
+											<asp:TableRow ID="TableRow3" runat="server">
+												<asp:TableCell ID="TableCell3" runat="server" ColumnSpan="2">
+													<asp:Label ID="Label1" runat="server">To add a property for payment to those listed in the Grid, enter the applicable information in the fields below<br/>and click the Search button. The results will be added to the Grid above.</asp:Label>
+												</asp:TableCell>
+											</asp:TableRow>
+											<asp:TableRow ID="TableRow4" runat="server" Height="30">
+												<asp:TableCell ID="TableCell4" runat="server">
+													<asp:Label ID="Label2" runat="server">Select a Borough:    </asp:Label>
+													<asp:DropDownList ID="BoroughDropDownList" runat="server">
+														<asp:ListItem Value="1">Manhattan</asp:ListItem>
+														<asp:ListItem Value="2">Bronx</asp:ListItem>
+														<asp:ListItem Value="3">Brooklyn</asp:ListItem>
+														<asp:ListItem Value="4">Queens</asp:ListItem>
+														<asp:ListItem Value="5">Staten Island</asp:ListItem>
+													</asp:DropDownList>
+												</asp:TableCell>
+											</asp:TableRow>
+											<asp:TableRow ID="TableRow5" runat="server" Height="30">
+												<asp:TableCell ID="TableCell5" runat="server">
+													<asp:Label ID="Label3" runat="server">Search By: </asp:Label>
+													<asp:Label ID="PropertySearchTypeBlockAndLotLabel" runat="server">Block and Lot</asp:Label>
+													<asp:RadioButton ID="PropertySearchTypeBlockAndLot" runat="server" onchange="SearchByCheckChange()"
+														GroupName="PropertySearchType" Checked="True" />
+													<asp:Label ID="PropertySearchTypeStreetAddressLabel" runat="server">  Street Address</asp:Label>
+													<asp:RadioButton ID="PropertySearchTypeStreetAddress" runat="server" onchange="SearchByCheckChange()"
+														GroupName="PropertySearchType" />
+												</asp:TableCell>
+											</asp:TableRow>
+											<asp:TableRow runat="server" ID="BlockAndLotSearchTable1" Height="30">
+												<asp:TableCell ID="TableCell6" runat="server">
+													<asp:Label ID="Label4" runat="server">Block: </asp:Label>
+													<asp:TextBox ID="Block" runat="server" Width="200"></asp:TextBox>
+												</asp:TableCell>
+												<asp:TableCell ID="TableCell7" runat="server" HorizontalAlign="Left">
+													<asp:Label ID="Label5" runat="server">Lot: </asp:Label>
+													<asp:TextBox ID="Lot" runat="server" Width="200"></asp:TextBox>
+												</asp:TableCell>
+											</asp:TableRow>
+											<asp:TableRow runat="server" ID="BlockAndLotSearchTable2" Height="30">
+												<asp:TableCell ID="TableCell8" runat="server" ColumnSpan="2">
+													<asp:Label ID="Label6" runat="server">Easement: </asp:Label>
+													<asp:DropDownList runat="server" ID="EasementTypeList">
+														<asp:ListItem Value=''>No Easement</asp:ListItem>
+														<asp:ListItem Value="A">A - Air rights</asp:ListItem>
+														<asp:ListItem Value="B">B - Non-air rights</asp:ListItem>
+														<asp:ListItem Value="E">E - Portion of the lot with land easement</asp:ListItem>
+														<asp:ListItem Value="F">F - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="G">G - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="H">H - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="I">I - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="J">J - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="K">K - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="L">L - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="M">M - Portion of the lot with multiple land easements</asp:ListItem>
+														<asp:ListItem Value="N">N - Non-transit</asp:ListItem>
+														<asp:ListItem Value="P">P - Piers</asp:ListItem>
+														<asp:ListItem Value="R">R - Railroad</asp:ListItem>
+														<asp:ListItem Value="S">S - Street</asp:ListItem>
+														<asp:ListItem Value="U">U - US Government</asp:ListItem>
+													</asp:DropDownList>
+												</asp:TableCell>
+											</asp:TableRow>
+											<asp:TableRow runat="server" ID="StreetAddressSearchTable" Height="30" CssClass="toggleTableVisibility">
+												<asp:TableCell ID="TableCell9" runat="server">
+													<asp:Label ID="Label7" runat="server">Street Number: </asp:Label>
+													<asp:TextBox ID="StreetNumber" runat="server" Width="200"></asp:TextBox>
+												</asp:TableCell>
+												<asp:TableCell ID="TableCell10" runat="server" HorizontalAlign="Left">
+													<asp:Label ID="Label8" runat="server">Street Name: </asp:Label>
+													<asp:TextBox ID="StreetName" runat="server" Width="200"></asp:TextBox>
+												</asp:TableCell>
+											</asp:TableRow>
+											<asp:TableRow ID="TableRow6" runat="server" Height="30">
+												<asp:TableCell ID="TableCell11" runat="server">
+													<asp:Button runat="server" ID="SearchPropertyButton" Text="Search" CommandName="Search"
+														CssClass="submitButton" OnCommand="CommandButtonClick" ToolTip="Click to perform the search" />
+												</asp:TableCell>
+											</asp:TableRow>
+										</asp:Table>
+									</asp:TableCell>
+								</asp:TableRow>
+							</asp:Table>
+						</fieldset>
+					</div>
+                    <div>
+                        <fieldset class="login">
+                            <legend class="LegendWithRadioButtons">Search For A Property (<img src="../Images/red-star.png" /> denotes required fields)</legend>
+                            <table>
+                                <tr>
+                                    <td colspan="3">Search by: BBL <input type="radio" name="rdoSearchType" checked value="bbl" onclick="ChangeSearchParams();" /> Address <input type="radio" name="rdoSearchType" value="address"  onclick="ChangeSearchParams();" /></td>
+                                </tr>
+                                <tr id="trBBLSearch">
+                                    <td>Borough: 
+                                        <select id="selBoroughList">
+                                            <option value="1">Manhattan</option>
+                                            <option value="2">Bronx</option>
+                                            <option value="3">Brooklyn</option>
+                                            <option value="4">Queens</option>
+                                            <option value="5">Staten Island</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        Block Number: <input type="text" id="txtBlockNumber" /><img src="../Images/red-star.png" />
+                                    </td>
+                                    <td>
+                                        Lot Number: <input type="text" id="txtLotNumber" /><img src="../Images/red-star.png" />
+                                    </td>
+                                </tr>
+                                <tr id="trAddressSearch" class="none">
+                                    <td>Street Address: <input type="text" id="txtStreetAddress" /><img src="../Images/red-star.png" /></td>
+                                </tr>
+                                <tr id="trEasement" class="">
+                                    <td colspan="2">Easements:&nbsp;
+                                        <select id="selEasements">
+											<option value=''>No Easement</option>
+											<option value="A">A - Air rights</option>
+											<option value="B">B - Non-air rights</option>
+											<option value="E">E - Portion of the lot with land easement</option>
+											<option value="F">F - Portion of the lot with multiple land easements</option>
+											<option value="G">G - Portion of the lot with multiple land easements</option>
+											<option value="H">H - Portion of the lot with multiple land easements</option>
+											<option value="I">I - Portion of the lot with multiple land easements</option>
+											<option value="J">J - Portion of the lot with multiple land easements</option>
+											<option value="K">K - Portion of the lot with multiple land easements</option>
+											<option value="L">L - Portion of the lot with multiple land easements</option>
+											<option value="M">M - Portion of the lot with multiple land easements</option>
+											<option value="N">N - Non-transit</option>
+											<option value="P">P - Piers</option>
+											<option value="R">R - Railroad</option>
+											<option value="S">S - Street</option>
+											<option value="U">U - US Government</option>
+										</select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">&nbsp;&nbsp;&nbsp;<span id="btnSearch" class="btnSearch" onclick="SearchProperty();"> 
+                                        <img src="../Images/iconsets/knobbuttons/Knob%20Search.png"  />Search</span></td>
+                                </tr>
+                            </table>
+                            <fieldset class="login">
+                                <legend class="LegendWithRadioButtons">Search Results</legend>
+                                <table cellpadding="0" cellspacing="0" border="0" class="display" id="tblSearchResults">
+	                                <thead>
+		                                <tr>
+			                                <th width="10%">Boro</th>
+			                                <th width="10%">Block</th>
+			                                <th width="10%">Lot</th>
+			                                <th width="30%">Address</th>
+                                            <th width="10%"></th>
+		                                </tr>
+	                                </thead>
+	                                <tbody></tbody>
+	                                <tfoot></tfoot>
+                                </table>
+                            </fieldset>
+                        </fieldset>
+                    </div>
+					<br />
+					<div>
+						<fieldset class="login">
+							<legend class="LegendWithRadioButtons"><a id="upload" class="nolinkcolor">Property Preference File Upload</a></legend>
+							<asp:Table ID="Table2" runat="server">
+								<asp:TableRow runat="server" Height="30">
+									<asp:TableCell runat="server">
+										<asp:Label runat="server" Text="You may upload a Property Profile Preference file in Microsoft Excel format (.xls or .xlsx), from Excel 2000 up through Excel 2013. "/>
+									</asp:TableCell>
+								</asp:TableRow>
+								<asp:TableRow ID="TableRow10" runat="server">
+									<asp:TableCell ID="TableCell15" runat="server">
+										<asp:Image ID="MyThrobber" ImageUrl="~/Images/ajax-loader.gif" Style="display: None"
+											runat="server" />
+										<ajaxToolkit:AjaxFileUpload ID="AjaxFileUpload1" runat="server" OnUploadComplete="PropertyPreferenceFileUploadUploadComplete"
+											ThrobberID="MyThrobber" MaximumNumberOfFiles="1" 
+											AllowedFileTypes="xls,xlsx,vnd.ms-excel,vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+											Width="400" />
+									</asp:TableCell>
+								</asp:TableRow>
+							</asp:Table>
+						</fieldset>
+					</div>
+					<br />
+					<div>
+						<fieldset class="login">
+							<legend>Property Tax Type Selection</legend>
+							<asp:Table runat="server" ID="TaxTypeSelectionTable" ViewStateMode="Enabled">
+								<asp:TableRow ID="TableRow7" runat="server" Height="30">
+									<asp:TableCell ID="TableCell12" runat="server">
+										<asp:Label ID="Label9" runat="server">Select the Tax Types to Pay</asp:Label>
+									</asp:TableCell>
+								</asp:TableRow>
+								<asp:TableRow ID="TaxTypeRow1" runat="server" Height="30" Width="200">
+									<asp:TableCell ID="TypeAll" runat="server" Wrap="False" ColumnSpan="4">
+										<input type="checkbox" id="chkCheckAllTaxTypes" checked="checked" onclick="CheckAllTaxTypes(this.checked);"/>
+										<asp:Label ID="Label10" runat="server" Text="Select All"></asp:Label>
+									</asp:TableCell>
+								</asp:TableRow>
+								<asp:TableRow runat="server">
+									<asp:TableCell runat="server" Wrap="False">
+										<asp:CheckBoxList runat="server" ID="TaxTableList" RepeatLayout="Table" RepeatDirection="Horizontal" DataTextField="TaxTypeCode"
+											RepeatColumns="4" TextAlign="Right">
+										</asp:CheckBoxList>
+                                        
+									</asp:TableCell>
+								</asp:TableRow>
+							</asp:Table>
+						</fieldset>
+					</div>
+				</asp:TableCell>
+			</asp:TableRow>
+			<asp:TableRow ID="TableRow8" runat="server" HorizontalAlign="Right" CssClass="none">
+				<asp:TableCell ID="TableCell14" runat="server" HorizontalAlign="Right">
+					<asp:Button ID="CancelButton" runat="server" CausesValidation="True" Text="Cancel"
+						CssClass="submitButton" PostBackUrl="~/AccountMainMenu.aspx" ToolTip="Return to the Main Menu" />
+					<asp:Button ID="SubmitButton" runat="server" CommandName="Submit" ToolTip="Click to Save Changes to your Property Profile"
+						OnCommand="CommandButtonClick" Text="Update Property Profile" CssClass="submitButton" />
+				</asp:TableCell>
+			</asp:TableRow>
+		</asp:Table>
+        <fieldset class="login">
+        <div id="div1">
+            <span id="span1" class="btnSave btnGreenSave" onclick="SavePropertyProfile();" style="float:right;"> 
+                <img src="../Images/iconsets/devicons/Send%20Document.png" />Save Property Profile</span>
+                                    
+            <span id="Span3" class="btnCancel btnCancelSave" onclick="ConfirmCancel();" style="float:right;"> 
+                <img src="../Images/iconsets/devicons/Stop%20Red%20Button.png" />Cancel</span>
+        </div>
+        <table class="" id="tblUpToDateBottom">
+            <tr>
+                <td><img src="../Images/iconsets/knobbuttons/Knob%20Valid%20Green.png" /></td>
+                <td valign="middle">Your saved property profile is up to date</td>
+            </tr>
+        </table>
+        <table class="none" id="tblSaveWarningBottom">
+            <tr>
+                <td><img src="../Images/iconsets/knobbuttons/Knob%20Red.png" /></td>
+                <td valign="middle">You have made unsaved changes to your property profile</td>
+            </tr>
+        </table>
+    </fieldset>
+	</div>
+    <script src="../Scripts/common.js" type="text/javascript"></script>
+	<script language="javascript" type="text/javascript">
+		function SearchByCheckChange() {
+			if (document.getElementById("<%= PropertySearchTypeBlockAndLot.ClientID %>").checked) {
+				document.getElementById("<%= BlockAndLotSearchTable1.ClientID %>").style.display = "table-row";
+				document.getElementById("<%= BlockAndLotSearchTable2.ClientID %>").style.display = "table-row";
+				document.getElementById("<%= StreetAddressSearchTable.ClientID %>").style.display = "none";
+			}
+			else if (document.getElementById("<%= PropertySearchTypeStreetAddress.ClientID %>").checked) {
+				document.getElementById("<%= BlockAndLotSearchTable1.ClientID %>").style.display = "none";
+				document.getElementById("<%= BlockAndLotSearchTable2.ClientID %>").style.display = "none";
+				document.getElementById("<%= StreetAddressSearchTable.ClientID %>").style.display = "table-row";
+			}
+        }
+
+        function chkAutoDebit(o) {
+            MarkUnmarkCheckBoxes("MainContent_PropertyTaxListGrid", "MainContent_PropertyTaxListGrid_chkSelectAutoDebit", o.checked);
+        }
+
+        function chkAnnualPay(o) {
+            MarkUnmarkCheckBoxes("MainContent_PropertyTaxListGrid", "MainContent_PropertyTaxListGrid_chkSelectAnnualPay", o.checked);
+        }
+	</script>
+    
+</asp:Content>
