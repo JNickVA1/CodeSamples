@@ -1,0 +1,73 @@
+-- --------------------------------------------------------------------------------
+-- Routine DDL
+-- Note: comments before and after the routine body will not be stored by the server
+-- --------------------------------------------------------------------------------
+DELIMITER $$
+
+CREATE DEFINER=`awsuser`@`%` PROCEDURE `sp_CreateUserPropertyProfile`(IN sid VARCHAR(38),	# The Session Guid
+															IN propertyDataRecords TEXT,	# A list of property data, seperated by a '^', with fields seperated by a '|'
+															IN BBLRecordCount int,			# The number of property records contained in the propertyDataRecords argument
+															IN FileContents TEXT)			# The uploaded file to be stored in a table by user guid with a datetime stamp
+BEGIN
+	DECLARE uid VARCHAR(38) DEFAULT `fn_GetUUIDFromSessionUID`(sid);
+	DECLARE cnt INT DEFAULT 1;		#row counter
+	DECLARE cntIn int default 1;	#col cntr
+	DECLARE errorIdsOut text default '';
+	DECLARE lastInsertIdTemp int default 0;	#use 0 as default to indicate hasn't started, counter for how many temp rows get populated in temp table
+	DECLARE lastInsertIdTempCnt int default 0; #counter for how many rows to be populated
+	DECLARE lastInsertId int default 0;	#counter for real urp rows populated
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN 
+			GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MESSAGE_TEXT;
+			ROLLBACK;
+-- 			select @p1, @p2;
+			SELECT 'ERROR' result, concat('An error occurred editing the user''s receivables profile: ', @p2) resultDetail;
+		END;
+		
+	IF fn_IsSessionExpired(sid) = 0 
+	THEN
+		set cnt=1;
+
+		set @transstate = '';
+			
+		start transaction;
+
+			delete from	`UserReceivablesProfile` where	`UserReceivablesProfile`.`UserGUID` = uid;
+			delete from `SelectedTaxTypes` where `SelectedTaxTypes`.`UserGUID` = uid;
+
+			WHILE cnt <= BBLRecordCount do # count of records
+				set @newStuff=(Select `SPLIT_STR`(propertyDataRecords, '^', cnt));
+				SET cntIn = 1;
+				set @autoDebit = (Select `SPLIT_STR`(@newStuff, '|', cntIn));
+				set @annualPay = (SELECT `SPLIT_STR`(@newStuff, '|', cntIn+1));
+				set @account = (SELECT `SPLIT_STR`(@newStuff, '|', cntIn+2));
+				set @boro = (SELECT `SPLIT_STR`(@newStuff, '|', cntIn+3));
+				set @block = (SELECT `SPLIT_STR`(@newStuff, '|', cntIn+4));
+				set @lot = (SELECT `SPLIT_STR`(@newStuff, '|', cntIn+5));
+				set @easement = (SELECT `SPLIT_STR`(@newStuff, '|', cntIn+6));
+
+				INSERT INTO `nycefile`.`UserReceivablesProfile`
+					(UserGUID, AutoDebit, AnnualPay, BankAccountGUID, BoroughNumber, BlockNumber, LotNumber, EasementCode)
+				VALUES (uid, 
+						CAST(@autoDebit AS UNSIGNED INTEGER), #bit to int historical artifact
+						cast(@annualPay AS UNSIGNED INTEGER), 
+						if(@account is null, '', @account),   
+						@boro,
+						@block,
+						@lot,
+						IF(@easement IS NULL, '', @easement)
+					);
+					
+				SET cnt = cnt + 1;
+
+				set lastInsertIdTemp=last_insert_id();
+			end WHILE;
+
+		commit;
+		
+		SELECT 'SUCCESS' result, concat('The user receivables profile was successfully edited, ', @transstate, ':', uid) resultDetail;
+	ELSE
+		SELECT 'ERROR' result, 'Session timed out' resultDetail;
+	END IF;	
+END
