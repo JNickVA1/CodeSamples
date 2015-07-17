@@ -7,7 +7,7 @@
 <asp:Content runat="server" ContentPlaceHolderID="scripts">
 	<uc:Script runat="server" Src="~/common/content/js/SIM.Test.html.js" ScriptType="text/javascript" />
 	<uc:Script runat="server" Src="~/common/content/js/jquery.dimensions.min.js" ScriptType="text/javascript" />
-	<uc:Script runat="server" Src="~/common/content/js/SIM.equine.jgallery.js" ScriptType="text/javascript" />
+	<uc:Script runat="server" Src="~/common/content/js/SIM.Test.jgallery.js" ScriptType="text/javascript" />
 
 <script type="text/javascript">
 	$(document).ready(function() {
