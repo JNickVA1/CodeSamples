@@ -1,0 +1,273 @@
+<%@ Page Title="" Language="C#" MasterPageFile="~/common/masterpages/RightGutter_300.master" AutoEventWireup="true" Inherits="property_Ad_Details" Codebehind="Ad_Details.aspx.cs" %>
+
+<%@ Register Src="~/controls/Dart2012.ascx" TagName="Dart2012" TagPrefix="uc" %>
+<%@ Register Src="~/common/controls/BookmarkIt.ascx" TagName="BookmarkIt" TagPrefix="sim" %>
+<%@ Register Src="~/common/controls/properties/QuickContact.ascx" TagName="QuickContact" TagPrefix="uc" %>
+
+<asp:Content runat="server" ContentPlaceHolderID="scripts">
+	<uc:Script runat="server" Src="~/common/content/js/SIM.equine.html.js" ScriptType="text/javascript" />
+	<uc:Script runat="server" Src="~/common/content/js/jquery.dimensions.min.js" ScriptType="text/javascript" />
+	<uc:Script runat="server" Src="~/common/content/js/SIM.equine.jgallery.js" ScriptType="text/javascript" />
+
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		$('.loaPropDetails_County, .loaPropDetails_PropType, .loaPropDetails_Acres, .loaPropDetails_Address, .loaPropDetails_City, .loaPropDetails_State, .loaPropDetails_Zip, .loaPropDetails_Price, .loaPropDetails_Status').roundedBoxContent("bg4 bd2 bd_w_1 bd_no_r bd_no_l f_md", "padding: 10px; cursor: default; margin-bottom: 10px; line-height: 16px;");
+		$('.loaPropDetails_Description').roundedBoxContent("bg4 bd2 bd_w_1 bd_no_r bd_no_l f_md", "padding: 10px; cursor: default; margin-bottom: 10px; line-height: 16px;");
+		$('.loaPropDetails_AccountIcon, .loaPropDetails_AccountPhoto').roundedBoxContent("bg4 bd2 bd_w_1 bd_no_r bd_no_l f_md", "padding: 10px; cursor: default; margin-bottom: 10px; line-height: 16px;");
+		$('.loaPropDetails_Disclaimer').roundedBoxContent("bg4 bd2 bd_w_1 bd_no_r bd_no_l f_md", "padding: 10px; cursor: default; line-height: 16px;");
+
+		var images = $('.loaPropDetails_Photos ul li');
+		if (images.length > 0) {
+			var container = $('#galleryContainer');
+			container.show();
+			var photos = $('#photoContainer', container);
+			var thumbs = $('#floatContainer', container);
+			for (var x = 0; x < images.length; x++) {
+				var i = new Image();
+				i.src = $('a', $(images[x])).attr('href');
+				photos.append('<img src="' + i.src + '" title="" id="i' + x + '" alt="" style="display: none;" />');
+				//photos.append('<img id="t' + x + '" src="<%=ResolveUrl("~/images/jQueryGallery/loading.gif")%>" alt="video" title="" style="display: none;" />');
+				thumbs.append('<img id="t' + x + '" src="<%=ResolveUrl("~/images/jQueryGallery/loading.gif")%>" alt="video" title="" />');
+				$(i).ready(function() {
+					$('img:eq(' + x + ')', thumbs).attr('src', i.src);
+				});
+			}
+
+			$('.loaPropDetails_Photos').append($('#galleryContainer'));
+			equineGallery('#galleryContainer');
+		} else {
+		}
+	});
+</script>
+</asp:Content>
+
+<asp:Content ContentPlaceHolderID="head" runat="server">
+  <link href="<%= ResolveUrl("~/") %>App_Themes/Main/AdDetails.css" type="text/css" rel="stylesheet" />
+	<style type="text/css">
+#loaPropDetails {
+	color: inherit;
+	position: relative;
+}
+
+#loaPropDetails a {
+	color: #000;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+
+#galleryContainer {
+	width: 400px;
+	margin: 0pt auto;
+	margin-top: 15px;
+	margin-bottom: 20px;
+	padding: 0px;
+	height: 415px;
+	border: solid 3px #000;
+}
+
+#loaPropDetails iframe {
+    display: none;
+}
+
+#photoContainer {
+	height: 300px;
+}
+
+#thumbsContainer {
+	border-top: 1px solid #fff;
+	height: 104px;
+}
+
+#photoContainer img {
+	max-width: 400px;
+	max-height: 300px;
+}
+
+#floatContainer {
+	top: 4px;
+}
+
+#floatContainer img {
+	border: 1px solid #fff;
+	height: 80px;
+}
+
+
+#galleryContainer #controls {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+	width: 400px;
+	height: 75px;
+	padding: 5px;
+	overflow: hidden;
+	z-index: 200000;
+}
+
+#galleryContainer #controls .instructions { display: none; }
+
+#galleryContainer #controls .prevPhoto {
+    width: 97px;
+    height: 66px;
+    background-image: url(<%=ResolveUrl("~/images/jqueryGallery/prev.png")%>);
+    background-position: center top;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 5px;
+    bottom: 0px;
+}
+
+#galleryContainer #controls .nextPhoto {
+    width: 97px;
+    height: 66px;
+    background-image: url(<%=ResolveUrl("~/images/jqueryGallery/next.png")%>);
+    background-position: center top;
+    background-repeat: no-repeat;
+    position: absolute;
+    right: 5px;
+    bottom: 0px;
+}
+
+#galleryContainer #controls .play {
+    width: 157px;
+    height: 66px;
+    background-image: url(<%=ResolveUrl("~/images/jqueryGallery/play.png")%>);
+    background-position: center top;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 120px;
+    bottom: 0px;
+}
+
+#galleryContainer #controls .pause {
+    width: 157px;
+    height: 66px;
+    background-image: url(<%=ResolveUrl("~/images/jqueryGallery/pause.png")%>);
+    background-position: center top;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 120px;
+    bottom: 0px;
+}
+
+
+
+.loaPropDetails_LocationMapLink, .loaPropDetails_GoogleEarthLink, .loaPropDetails_Photos ul, .loaPropDetails_PropID
+{ display: none; }
+
+.AccountTollFreePhone, .loaPropDetails_AccountContactName, .loaPropDetails_AccountPhone,
+.loaPropDetails_AccountFax, .loaPropDetails_AccountAddress1, .loaPropDetails_AccountCity, .loaPropDetails_AccountState,
+.loaPropDetails_AccountZip, .loaPropDetails_AccountTollFreePhone, .loaPropDetails_AccountAddress2
+{
+<% if(!Request.IsAuthenticated) { %>
+	display: none;
+<% } else { %>
+	background-color: #fff;
+	border-left: solid 1px #000;
+	border-right: solid 1px #000;
+	text-align: center;
+<% } %> 
+}
+
+
+.loaPropDetails_SendFriendLink { display: inline; padding-right: 5px; }
+.loaPropDetails_CreateFlyerLink { display: inline; padding-right: 5px; }
+.loaPropDetails_LoanCalcLink { display: inline; padding-right: 5px; }
+.loaPropDetails_LocationMapLink { display: inline; padding-right: 5px; }
+
+.loaPropDetails_Directions, .loaPropDetails_Description, .loaPropDetails_AdditionalFiles {
+	margin-top: 10px;
+}
+
+.loaPropDetailsMessage {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.loaPropDetails_AccountIcon, .loaPropDetails_AccountPhoto {
+	text-align: center;
+}
+
+.loaPropDetails_Disclaimer {
+	font-size: 10px;
+	font-style: italic;
+}
+
+.heading
+{
+    color:#999999;
+    font-size:20px;
+    font-weight:bold;
+    text-transform:uppercase;
+    margin:0px;
+    padding:5px 0px 0px 10px;
+}
+
+	</style>
+</asp:Content>
+<asp:Content runat="Server" ContentPlaceHolderID="body">
+	<div id="galleryContainer" style="background-color: #000; position: relative; display: none;">
+		<div id="loading">
+			<br /><br /><br /><br /><br />
+			<span style="color: #546880">Please Wait, loading ...</span>
+		</div>
+		<div id="photoContainer"></div>
+		<div id="thumbsContainer" style="visibility: hidden;">
+			<div id="floatContainer"></div>
+		</div>
+		<div id="controls" style="position: absolute;">
+				<div style="cursor: pointer; opacity: 0.1;" class="prevPhoto"></div>
+				<div style="cursor: pointer; opacity: 0.1;" class="play"><!-- Always set to 'PLAY'--></div>
+				<div style="cursor: pointer; opacity: 0.1;" class="nextPhoto"></div>
+				<div style="background-color: #000; border: double 3px #fff; width: 300px; height: 65px; margin: 0pt auto; margin-top: 150px; text-align: center;" class="instructions">
+					<p style="font-weight: bold; font-size: 14px;">Hover over the image to activate the controls</p>
+				</div>
+		</div>
+	</div>
+	<div id="refresh" runat="server" visible="false">
+		<h1>Please wait while we search for your results ...</h1>
+		<script>
+			setTimeout(function() {
+				window.location.reload(false);
+			}, 3500);
+		</script>
+	</div>
+	
+	<div class="fl_l">
+	    <uc:RoundedBox runat="server" MainWidth="656" CssClass="bg3">
+			<asp:PlaceHolder runat="server" id="loaPropDetails" />
+	    </uc:RoundedBox>
+	</div>
+	<div class="clear"></div>
+
+</asp:Content>
+<asp:Content runat="server" ContentPlaceHolderID="rightGutter">
+	<div class="fl_r">
+	    <uc:RoundedBox runat="server" MainWidth="291" CssClass="bg3">
+			<div class="toolItem" style="padding: 5px;">
+				This ad is provided through a partnership with LandsOfAmerica.com, 
+				the largest marketplace for rural real estate on the internet.
+				With over 62,000 listings, finding dream horse properties for sale
+				has never been easier.
+			</div>
+		</uc:RoundedBox>
+		
+		<h1 class="heading">Contact Seller</h1>
+		<uc:RoundedBox runat="server" MainWidth="291" CssClass="bg3">
+			<div style="margin-bottom:15px;padding-left:8px;">
+				<uc:QuickContact runat="server" />
+			</div>
+			<div style="padding-bottom: 15px; text-align: center;">
+				<sim:BookmarkIt runat="server" />
+			</div>
+	    </uc:RoundedBox>
+		<br />
+		<div style="margin-top: 15px; margin-bottom: 15px; text-align: center;">
+			<uc:Dart2012 runat="server" ID="Dart2" AdLocation="Real_Estate" Width="300" Height="250" />
+		</div>
+		
+	</div>
+	<div class="clear"></div>
+</asp:Content>
